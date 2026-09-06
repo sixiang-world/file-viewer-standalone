@@ -20,6 +20,10 @@ env:
   NODE_VERSION: '20'
   NODE_OPTIONS: '--max-old-space-size=8192'
 
+# 关键：授予 GITHUB_TOKEN 创建 Release 的权限
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Offline Web Version
@@ -74,14 +78,22 @@ jobs:
           path: file-viewer-web.zip
           retention-days: 30
 
+      - name: Get version from package.json
+        id: version
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: v$VERSION"
+
       - name: Create GitHub Release
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: File Viewer Web v${{ steps.version.outputs.version }}
           body: |
-            ## File Viewer Web - Build ${{ github.run_number }}
+            ## File Viewer Web - Release v${{ steps.version.outputs.version }}
 
             Offline-first web version of File Viewer.
 
