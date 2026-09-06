@@ -4,6 +4,29 @@
 
 [![Build Web Version](https://github.com/sixiang-world/file-viewer-standalone/actions/workflows/build.yml/badge.svg)](https://github.com/sixiang-world/file-viewer-standalone/actions/workflows/build.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Vue 3](https://img.shields.io/badge/Vue-3-42b883)](https://vuejs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5-646cff)](https://vitejs.dev/)
+
+---
+
+## 📑 目录
+
+- [🔗 与桌面版的关系](#-与桌面版的关系)
+- [✨ 特性](#-特性)
+- [📋 支持的文件格式](#-支持的文件格式)
+- [🚀 快速开始](#-快速开始)
+- [📖 使用方式](#-使用方式)
+- [💻 开发指南](#-开发指南)
+- [⚙️ 配置说明](#️-配置说明)
+- [🔧 GitHub Actions 自动构建](#-github-actions-自动构建)
+- [📁 项目结构](#-项目结构)
+- [🏗️ 技术架构](#️-技术架构)
+- [🔒 隐私与安全](#-隐私与安全)
+- [🐛 故障排除](#-故障排除)
+- [❓ 常见问题](#-常见问题)
+- [🤝 贡献指南](#-贡献指南)
+- [📄 许可证](#-许可证)
+- [🙏 致谢](#-致谢)
 
 ---
 
@@ -39,6 +62,8 @@
 - **URL 参数加载**：支持 `?url=` 参数加载远程文件
 - **Electron 就绪**：内置桌面端集成接口，可直接被 Electron 应用调用
 - **响应式设计**：适配桌面和移动设备
+- **文档搜索**：支持 PDF、Word 等文档的全文搜索
+- **缩放控制**：支持放大、缩小、适应页面、适应宽度
 
 ---
 
@@ -129,6 +154,83 @@ index.html?url=https://example.com/file.pdf
 
 ---
 
+## 💻 开发指南
+
+### 本地开发调试
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/sixiang-world/file-viewer-standalone.git
+cd file-viewer-standalone
+
+# 2. 安装依赖
+npm install
+
+# 3. 启动开发服务器（热更新）
+npm run dev
+
+# 4. 浏览器打开 http://localhost:5173
+```
+
+### 项目脚本
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 启动开发服务器（热更新） |
+| `npm run build` | 类型检查 + 生产构建 |
+| `npm run preview` | 预览构建产物 |
+
+### 开发注意事项
+
+1. **内存设置**：开发时如果遇到内存问题，设置 `NODE_OPTIONS=--max-old-space-size=4096`
+2. **大文件测试**：测试大文件（>100MB）时，建议使用本地静态服务器而不是 `file://` 协议
+3. **WASM 调试**：WASM 相关问题可以在浏览器 DevTools 的 Network 面板检查加载状态
+4. **Electron 集成测试**：可以在浏览器控制台模拟 `window.fileViewerDesktop` 对象进行测试
+
+---
+
+## ⚙️ 配置说明
+
+### vite.config.ts 关键配置
+
+```typescript
+export default defineConfig({
+  base: './',           // 相对路径，支持 file:// 协议离线打开
+  build: {
+    modulePreload: false,  // 关闭模块预加载，避免 file:// 协议 CORS 问题
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vue-vendor': ['vue'],
+          'file-viewer-core': ['@file-viewer/core'],
+          'file-viewer-vue': ['@file-viewer/vue3-full']
+        }
+      }
+    }
+  },
+  optimizeDeps: {
+    exclude: ['@file-viewer/pptx']  // PPT 渲染器需要动态加载 WASM/Worker
+  }
+})
+```
+
+### package.json 依赖说明
+
+| 依赖 | 版本 | 说明 |
+|------|------|------|
+| `@file-viewer/vue3-full` | ^3.0.0 | Vue 3 全量包，包含所有渲染器 |
+| `@file-viewer/core` | ^3.0.0 | 核心渲染引擎 |
+| `@file-viewer/preset-all` | ^3.0.0 | 所有格式的预设配置 |
+| `vue` | ^3.4.0 | 前端框架 |
+
+### 环境变量
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `NODE_OPTIONS` | Node.js 内存限制等选项 | 无（建议设置 `--max-old-space-size=8192`） |
+
+---
+
 ## 🔧 GitHub Actions 自动构建
 
 本仓库配置了 GitHub Actions 自动构建工作流（`.github/workflows/build.yml`）：
@@ -152,6 +254,12 @@ index.html?url=https://example.com/file.pdf
 7. 上传 artifacts
 8. （可选）创建 GitHub Release
 
+### 手动触发参数
+
+| 参数 | 说明 | 选项 | 默认值 |
+|------|------|------|--------|
+| `create_release` | 是否创建 GitHub Release | `true` / `false` | `false` |
+
 ---
 
 ## 📁 项目结构
@@ -171,7 +279,10 @@ file-viewer-standalone/
 ├── index.html                 # 入口页面（带加载动画）
 ├── vite.config.ts             # Vite 配置（base: './' 支持离线）
 ├── tsconfig.json              # TypeScript 配置
+├── tsconfig.node.json         # Node 环境 TypeScript 配置
 ├── package.json               # 依赖配置
+├── package-lock.json          # 依赖锁定
+├── LICENSE                    # Apache-2.0 许可证
 └── README.md                  # 本文件
 ```
 
@@ -199,6 +310,22 @@ file-viewer 采用浏览器原生技术栈，所有解析均在前端完成：
 - 暴露 `window.openFileViewerFile()` 全局方法供外部调用
 - 支持运行中拖拽文件到窗口
 
+### 数据流
+
+```
+用户操作（拖拽/点击/URL）
+    │
+    ▼
+App.vue 接收文件（File 对象或 URL）
+    │
+    ▼
+<file-viewer> 组件（@file-viewer/vue3-full）
+    │
+    ├──► 根据文件扩展名选择渲染器
+    ├──► 加载对应的 WASM/Worker（本地资源）
+    └──► 解析并渲染到页面
+```
+
 ---
 
 ## 🔒 隐私与安全
@@ -207,6 +334,62 @@ file-viewer 采用浏览器原生技术栈，所有解析均在前端完成：
 - **内网部署友好**：可部署到企业内网，无需外网访问
 - **纯静态产物**：构建产物不包含任何后端代码，可安全部署到任意静态服务器
 - **Content Security**：不加载任何外部 CDN 资源，所有依赖均本地打包
+- **无遥测**：不收集任何使用数据或用户信息
+- **无 Cookie**：不使用任何 Cookie 或本地存储（除了用户主动的文件选择）
+
+---
+
+## 🐛 故障排除
+
+### 构建时内存溢出（JavaScript heap out of memory）
+
+**症状**：构建时报错 `FATAL ERROR: Ineffective mark-compacts near heap limit`
+
+**解决方案**：
+```bash
+# Windows
+set NODE_OPTIONS=--max-old-space-size=8192
+npm run build
+
+# Linux/macOS
+NODE_OPTIONS=--max-old-space-size=8192 npm run build
+```
+
+如果仍然溢出，尝试增加到 12288（12GB）。
+
+### 构建时报错 "Module 'stream' has been externalized"
+
+**症状**：构建时出现警告，某些模块被 externalized
+
+**说明**：这是正常警告，不影响构建。这些是 Node.js 内置模块，在浏览器环境中会被自动 externalize。
+
+**解决方案**：无需处理，构建会正常完成。
+
+### 开发服务器启动慢
+
+**症状**：`npm run dev` 启动需要很长时间
+
+**原因**：`@file-viewer/vue3-full` 包很大，Vite 需要预构建很多依赖
+
+**解决方案**：
+1. 耐心等待，首次启动后会有缓存
+2. 确保使用 SSD 硬盘
+3. 关闭杀毒软件的实时扫描（可能会扫描大量小文件）
+
+### 某些格式无法预览
+
+**症状**：某些文件格式显示"不支持"或空白
+
+**可能原因**：
+1. 文件损坏或格式不标准
+2. 该格式的渲染器加载失败
+3. 浏览器安全限制
+
+**排查步骤**：
+1. 打开浏览器 DevTools（F12），查看 Console 错误信息
+2. 查看 Network 面板，检查 WASM/Worker 文件是否加载成功
+3. 尝试用其他浏览器打开
+4. 检查文件是否能在其他软件中正常打开
 
 ---
 
@@ -234,11 +417,93 @@ A: 可以将 `@file-viewer/vue3-full` 替换为 `@file-viewer/vue3` + 按需引�
 
 A: 将 `dist/` 目录的所有文件上传到任意静态文件服务器（Nginx、Apache、IIS 等）即可。无需任何后端服务或数据库。
 
+**Nginx 配置示例**：
+```nginx
+server {
+    listen 80;
+    server_name file-viewer.internal;
+    root /var/www/file-viewer;
+    index index.html;
+    
+    # 确保 WASM 文件正确的 MIME 类型
+    types {
+        application/wasm wasm;
+    }
+}
+```
+
+### Q: 可以嵌入到其他网页中吗？
+
+A: 可以。使用 iframe 嵌入：
+```html
+<iframe src="file-viewer/index.html?url=https://example.com/file.pdf" 
+        width="100%" height="600px" frameborder="0"></iframe>
+```
+
+### Q: 支持移动端吗？
+
+A: 支持响应式布局，但某些复杂格式（如 CAD、3D 模型）在移动端性能可能有限。建议在桌面端使用。
+
+---
+
+## 🤝 贡献指南
+
+欢迎贡献代码！请遵循以下步骤：
+
+### 提交 Issue
+- 使用 [Issues](https://github.com/sixiang-world/file-viewer-standalone/issues) 页面提交 bug 报告或功能请求
+- 提交时请包含：复现步骤、预期行为、实际行为、环境信息
+
+### 提交 Pull Request
+1. Fork 本仓库
+2. 创建特性分支：`git checkout -b feature/your-feature`
+3. 提交更改：`git commit -m 'Add some feature'`
+4. 推送到分支：`git push origin feature/your-feature`
+5. 创建 Pull Request
+
+### 代码规范
+- 使用 TypeScript，确保类型安全
+- 遵循 Vue 3 组合式 API 风格
+- 保持代码简洁，添加必要的注释
+- 提交前确保 `npm run build` 能正常通过
+
+### 开发环境设置
+```bash
+# 1. Fork 并克隆你的仓库
+git clone https://github.com/your-username/file-viewer-standalone.git
+cd file-viewer-standalone
+
+# 2. 安装依赖
+npm install
+
+# 3. 启动开发服务器
+npm run dev
+
+# 4. 构建测试
+npm run build
+```
+
 ---
 
 ## 📄 许可证
 
 本项目基于 [Apache-2.0](LICENSE) 许可证，与上游 file-viewer 保持一致。
+
+```
+Copyright 2024 File Viewer Contributors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
 
 ---
 
@@ -246,3 +511,11 @@ A: 将 `dist/` 目录的所有文件上传到任意静态文件服务器（Nginx
 
 - [flyfish-dev/file-viewer](https://github.com/flyfish-dev/file-viewer) - 浏览器原生文件预览引擎
 - [file-viewer-desktop](https://github.com/sixiang-world/file-viewer-desktop) - 姊妹仓库，Windows 桌面版
+- [Vue.js](https://vuejs.org/) - 渐进式 JavaScript 框架
+- [Vite](https://vitejs.dev/) - 下一代前端构建工具
+- [PDF.js](https://mozilla.github.io/pdf.js/) - PDF 渲染引擎
+- [Three.js](https://threejs.org/) - 3D 渲染引擎
+
+---
+
+**如果这个项目对你有帮助，请给个 ⭐ Star 支持！**
