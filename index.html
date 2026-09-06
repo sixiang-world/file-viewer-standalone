@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1f966e" />
+    <meta name="description" content="离线文件查看器 - 支持 Office、PDF、CAD、压缩包、邮件、3D、媒体等多种格式，无需服务器端转换" />
+    <title>File Viewer - 离线文件查看器</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #app {
+        width: 100%;
+        height: 100%;
+      }
+      /* 加载动画 */
+      .boot-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f6f8f7 0%, #e8f5f0 100%);
+        z-index: 9999;
+      }
+      .boot-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #1f966e 0%, #0d7a55 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 40px rgba(31, 150, 110, 0.3);
+      }
+      .boot-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #172033;
+        margin-bottom: 8px;
+      }
+      .boot-subtitle {
+        font-size: 14px;
+        color: #6b7b8f;
+        margin-bottom: 32px;
+      }
+      .boot-progress {
+        width: 200px;
+        height: 4px;
+        background: #dce7ee;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .boot-progress::after {
+        content: '';
+        display: block;
+        width: 40%;
+        height: 100%;
+        background: linear-gradient(90deg, #1f966e, #3b82f6);
+        border-radius: inherit;
+        animation: bootProgress 1.5s ease-in-out infinite;
+      }
+      @keyframes bootProgress {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(150%); }
+        100% { transform: translateX(300%); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="boot-screen">
+        <div class="boot-logo">FV</div>
+        <h1 class="boot-title">File Viewer</h1>
+        <p class="boot-subtitle">正在加载文件预览引擎...</p>
+        <div class="boot-progress"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
