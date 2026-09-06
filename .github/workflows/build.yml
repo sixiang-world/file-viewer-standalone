@@ -1,0 +1,101 @@
+name: Build Web Version
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create GitHub Release with build artifacts'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  NODE_VERSION: '20'
+  NODE_OPTIONS: '--max-old-space-size=8192'
+
+jobs:
+  build:
+    name: Build Offline Web Version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+        env:
+          NODE_OPTIONS: ${{ env.NODE_OPTIONS }}
+
+      - name: Verify build output
+        run: |
+          echo "Checking build output..."
+          ls -la dist/
+          if [ ! -f "dist/index.html" ]; then
+            echo "ERROR: dist/index.html not found!"
+            exit 1
+          fi
+          echo "Build output verified successfully"
+
+      - name: Create build artifact zip
+        run: |
+          cd dist
+          zip -r ../file-viewer-web.zip .
+          cd ..
+          ls -lh file-viewer-web.zip
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: file-viewer-web-dist
+          path: dist/
+          retention-days: 30
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: file-viewer-web-zip
+          path: file-viewer-web.zip
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          body: |
+            ## File Viewer Web - Build ${{ github.run_number }}
+
+            Offline-first web version of File Viewer.
+
+            ### Assets
+            - `file-viewer-web.zip` - Complete web build (extract and open index.html)
+
+            ### Usage
+            1. Download and extract `file-viewer-web.zip`
+            2. Open `index.html` in a browser
+            3. Drag and drop files to view them
+
+            ### Supported Formats
+            Office (DOC/DOCX/XLS/XLSX/PPT/PPTX), PDF, OFD, CAD (DWG/DXF/DWF), Archives (ZIP/RAR/7Z), Email (EML/MSG), Images, Video, Audio, 3D Models, and more.
+          files: |
+            file-viewer-web.zip
+          draft: false
+          prerelease: false
