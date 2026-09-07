@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, shallowRef } from 'vue'
-import type { FileViewerFileRef, FileViewerPublicApi, FileViewerOptions } from '@file-viewer/core'
+import type { FileViewerFileRef, FileViewerPublicApi, FileViewerOptions, FileViewerZoomState } from '@file-viewer/core'
 
 // ── 状态 ──
 const file = ref<FileViewerFileRef | undefined>()
@@ -111,23 +111,30 @@ function handleDrop(event: DragEvent) {
 }
 
 // ── 查看器操作 ──
-function zoomIn() {
-  viewerRef.value?.zoomIn()
-  updateZoom()
+async function zoomIn() {
+  const state = await viewerRef.value?.zoomIn()
+  if (state?.scale) {
+    zoomLevel.value = Math.round(state.scale * 100)
+  }
 }
 
-function zoomOut() {
-  viewerRef.value?.zoomOut()
-  updateZoom()
+async function zoomOut() {
+  const state = await viewerRef.value?.zoomOut()
+  if (state?.scale) {
+    zoomLevel.value = Math.round(state.scale * 100)
+  }
 }
 
-function resetZoom() {
-  viewerRef.value?.resetZoom()
-  zoomLevel.value = 100
+async function resetZoom() {
+  const state = await viewerRef.value?.resetZoom()
+  if (state?.scale) {
+    zoomLevel.value = Math.round(state.scale * 100)
+  } else {
+    zoomLevel.value = 100
+  }
 }
 
-function updateZoom() {
-  const state = viewerRef.value?.getZoomState()
+function updateZoom(state: FileViewerZoomState) {
   if (state?.scale) {
     zoomLevel.value = Math.round(state.scale * 100)
   }
