@@ -368,15 +368,17 @@ const viewerOptions = shallowRef<FileViewerOptions>({
             <polyline points="10 9 9 9 8 9"/>
           </svg>
         </div>
-        <h1 class="welcome-title">File Viewer</h1>
-        <p class="welcome-subtitle">离线文件查看器 · 无需服务器端转换</p>
+        <h1 class="welcome-title">文件查看器</h1>
+        <p class="welcome-subtitle">离线文件查看器 · 无需服务器端转换 · 支持 100+ 格式</p>
 
         <div class="drop-zone" @click="triggerFileInput">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-7"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
+          <div class="drop-icon-wrapper">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-7"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
           <p class="drop-text">点击选择文件，或将文件拖放到此处</p>
           <p class="drop-hint">支持 Office、PDF、CAD、压缩包、邮件、图片、视频、音频、3D 模型等</p>
         </div>
@@ -411,6 +413,19 @@ const viewerOptions = shallowRef<FileViewerOptions>({
             </svg>
             <span>100+ 格式支持</span>
           </div>
+        </div>
+
+        <div class="footer-links">
+          <a href="https://github.com/sixiang-world/file-viewer-standalone" target="_blank" rel="noopener" class="footer-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            <span>GitHub</span>
+          </a>
+          <span class="footer-divider">·</span>
+          <span class="footer-version">v1.0.0</span>
+          <span class="footer-divider">·</span>
+          <span class="footer-credit">基于 flyfish-dev/file-viewer</span>
         </div>
       </div>
     </div>
@@ -646,13 +661,30 @@ const viewerOptions = shallowRef<FileViewerOptions>({
   background: #f0fdf4;
 }
 
-.drop-zone svg {
-  color: #94a3b8;
-  margin-bottom: 16px;
+.drop-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.drop-zone:hover svg {
+.drop-zone:hover .drop-icon-wrapper {
+  background: linear-gradient(135deg, #1f966e 0%, #0d7a55 100%);
+  transform: scale(1.05);
+}
+
+.drop-zone:hover .drop-icon-wrapper svg {
+  color: white;
+}
+
+.drop-zone svg {
   color: #1f966e;
+  transition: color 0.2s ease;
 }
 
 .drop-text {
@@ -669,11 +701,18 @@ const viewerOptions = shallowRef<FileViewerOptions>({
 
 /* 格式网格 */
 .formats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
   margin-bottom: 32px;
   text-align: left;
+}
+
+.formats-grid > * {
+  flex: 0 0 calc(33.333% - 11px);
+  min-width: 180px;
+  max-width: 240px;
 }
 
 .format-group {
@@ -723,6 +762,47 @@ const viewerOptions = shallowRef<FileViewerOptions>({
 
 .feature svg {
   color: #1f966e;
+}
+
+/* 底部链接 */
+.footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.15s ease;
+}
+
+.footer-link:hover {
+  color: #1f966e;
+}
+
+.footer-divider {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.footer-version {
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.footer-credit {
+  font-size: 12px;
+  color: #94a3b8;
 }
 
 /* 查看器容器 */
@@ -785,13 +865,25 @@ const viewerOptions = shallowRef<FileViewerOptions>({
     font-size: 24px;
   }
 
-  .formats-grid {
-    grid-template-columns: 1fr;
+  .formats-grid > * {
+    flex: 0 0 100%;
+    max-width: 100%;
   }
 
   .features {
     flex-direction: column;
     gap: 12px;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .formats-grid > * {
+    flex: 0 0 calc(50% - 8px);
   }
 }
 </style>
